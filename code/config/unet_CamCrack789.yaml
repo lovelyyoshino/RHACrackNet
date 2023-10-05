@@ -1,0 +1,164 @@
+# ====================
+# environment
+# ====================
+env:
+  # relative path to the directory for this experiment
+  exp_name: 'unet_CamCrack789_common_seed=43'
+  # bool flag for whether or not to use CUDA
+  use_cuda: True
+  # CUDA device id, only when use_cuda == True, only single GPU is supported
+  cuda_id: '1'
+  # fixed random seed
+  seed: 43
+# ====================
+# agent
+# ====================
+agent:
+  # specifie agent to run
+  agent_name: 'exp_agent_org'
+  # run agent with 'train' or 'valid' mode
+  mode: 'train'
+
+# ====================
+# checkpoint
+# ====================
+ckpt:
+  # file name for saving checkpoint, best model will prefix with 'best_'
+  ckpt_name: 'ckpt.pth'
+
+# ====================
+# model config
+# ====================
+model:
+  model_name: 'unet'
+
+# ====================
+ # ====================
+data:
+  # root dir containing data source
+  data_root: 'data'
+  # bool flag for whether or not to shuffle training set
+  shuffle: True
+  # number of samples for each mini-batch for training
+  batch_size: 4
+  # number of samples for each mini-batch for validation
+  valid_batch_size: 4
+  # try to use pin_memory, but if system freeze or swap being used a lot, disable it.
+  pin_memory: False
+  # bool flag for whether or not to drop the last batch if no enough samples left
+  drop_last: True
+
+  # ====================
+  # CHASEDB1 dataset
+  # ====================
+  # dataset_name: 'chase'
+  # leaveout_ids: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]
+  # # leaveout_ids: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27]
+
+  # ====================
+  # DRIVE dataset
+  # ====================
+  dataset_train_name: 'CamCrack810_train'
+  dataset_valid_name: 'CamCrack810_valid'
+  #dataset_valid2_name: 'Stone311'
+  #leaveout_ids: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+  # ====================
+  # HRF dataset
+  # ====================
+  # dataset_name: 'hrf'
+  # data_type: 'all'
+  # leaveout_ids: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 40, 42, 44]
+  # # leaveout_ids: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43]
+
+  # ====================
+  # STARE dataset
+  # ====================
+  # dataset_name: 'stare'
+  # leaveout_ids: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+  # # leaveout_ids: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+
+# ====================
+# optimizer config
+# ====================
+optimizer:
+  # maximum number of epoch to run
+  max_epoch: 1000
+
+  # ====================
+  # Adam optimizer
+  # ====================
+  optimizer_name: 'adam'
+  lr: 0.001
+
+  # ====================
+  # SGD optimizer
+  # ====================
+  # optimizer_name: 'sgd'
+  # lr: 0.001
+  # momentum: 0
+  # dampening: 0
+  # weight_decay: 0
+  # nesterov: False
+
+  # ====================
+  # Momentum optimizer
+  # ====================
+  # optimizer_name: 'sgd'
+  # lr: 0.001
+  # momentum: 0
+  # dampening: 0
+  # weight_decay: 0
+  # nesterov: False
+
+  # ====================
+  # Learning rate schedule
+  # ====================
+  lr_scheduler:
+    # ====================
+    # Reduce lr when stuck in plateau
+    # ====================
+    lr_scheduler_name: 'plateau'
+    factor: 0.95
+    patience: 10
+    min_lr: 0.000001
+
+# ====================
+# Loss criterion
+# ====================
+loss:
+  # ====================
+  # Weighted binary cross entropy loss
+  # ====================
+   loss_name: 'wbce'
+   reduction: 'mean'
+   pos_weight_factor: 3.0
+  # ====================
+  # Weighted focal loss
+  # ====================
+  # loss_name: 'weighted_focalloss_Sig'
+  # alpha: 0.25
+  # gamma: 3.0
+  # reduction: 'mean'
+  # pos_weight_factor: 3.0
+  # ====================
+  # focalloss for sigmoid
+  # ====================
+  #loss_name: 'focalloss_Sig'
+  #alpha: 0.25
+  #gamma: 3.0
+  #reduction: 'mean'
+  #pos_weight_factor: 3.0
+
+  # ====================
+  # Binary cross entropy loss
+  # ====================
+#   loss_name: 'bce'
+#   reduction: 'mean'
+
+# ====================
+# Metrics config
+# ====================
+metrics:
+  plot_every_epoch: 10
+  pixel: 2
+  threshold: 0.5

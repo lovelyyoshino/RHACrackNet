@@ -1,10 +1,8 @@
-# RHACrackNet
+# [RHACrackNet](https://doi.org/10.1111/mice.13103)
 
 - [English](#english) 
 
 - [中文](#中文)
-
-代码、论文以及数据将在DOI号放出后公布（coming soon），arxiv版本（https://arxiv.org/abs/2207.14166）
 
 
 
@@ -62,14 +60,14 @@ This work is licensed under the terms of the MIT license. -->
 
 ![](pic/1694939857051.jpg)
 
-<!-- ## 引用
+## 引用
 
 如果您觉得这项工作有用，请引用我们的文章：
 
 ```
-
+Zhu, G., Liu, J., Fan, Z., Yuan, D., Ma, P., Wang, M., Sheng, W., & Wang, K. C. P. (2023). A lightweight encoder–decoder network for automatic pavement crack detection. Computer-Aided Civil and Infrastructure Engineering, 00, 1–23. https://doi.org/10.1111/mice.13103
 ```
 
 ## 许可证
 
-此项工作根据MIT许可证的条款获得许可。-->
+此项工作根据MIT许可证的条款获得许可。
