@@ -7,7 +7,7 @@ env:
   # bool flag for whether or not to use CUDA
   use_cuda: True
   # CUDA device id, only when use_cuda == True, only single GPU is supported
-  cuda_id: '1'
+  cuda_id: '0'
   # fixed random seed
   seed: 43
 # ====================
@@ -30,7 +30,7 @@ ckpt:
 # model config
 # ====================
 model:
-  model_name: 'unet'
+  model_name: 'RHANet'
 
 # ====================
  # ====================

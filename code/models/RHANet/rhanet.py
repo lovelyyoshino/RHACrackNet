@@ -10,16 +10,16 @@ from torch import nn
 from torch.nn import functional as F
 import torch 
 
-from .modules.unet_modules_depthwise import InitConv,EncoderBlock,DecoderBlock,FinalConv,ResNet_Each_Conv,ResBlock,FinalLoss_Crack,ResBlock_Norml,DecoderBlock_Conv1,Attention_block,ResNet_First_Conv,mid_output_get,Augmented_Attention_block
+from .modules.rhanet_modules_common import InitConv,EncoderBlock,DecoderBlock,FinalConv,ResNet_Each_Conv,ResBlock,FinalLoss_Crack,ResBlock_Norml,DecoderBlock_Conv1,Attention_block,ResNet_First_Conv,mid_output_get,Augmented_Attention_block
 #from models.unet.modules.unet_modules import EncoderBlock
 #from models.unet.modules.unet_modules import DecoderBlock
 #from models.unet.modules.unet_modules import FinalConv
 from torchsummary import summary
 
-class UNet(nn.Module):
-    def __init__(self):
+class RHANet(nn.Module):
+    def __init__(self, config):
     # def __init__(self):
-        super(UNet, self).__init__()#继承自父类的属性进行初始化
+        super(RHANet, self).__init__()#继承自父类的属性进行初始化
         # self.config=config
         input_ch = 3
         init_conv_mid_ch, init_conv_out_ch = 16, 16#对应的中间和输出参数
@@ -158,7 +158,7 @@ class UNet(nn.Module):
         return output
 
 if __name__ == '__main__':
-    unet = UNet()
+    unet = RHANet()
     unet=unet.to("cuda:0")
     summary(unet,(3,572,572))
     #a = torch.randn((1,3,311,462))

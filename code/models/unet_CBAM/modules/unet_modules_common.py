@@ -15,42 +15,44 @@ def mid_output_get():
     global  output_mid
     return output_mid
 
-class Depthwise_Conv(nn.Module):
-    def __init__(self, input_channel, output_channel,kernel_size,stride):
-        super(Depthwise_Conv, self).__init__()
-        self.depth_conv = nn.Conv2d(
-            in_channels=input_channel,
-            out_channels=input_channel,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=1,
-            groups=input_channel
-        )
-        self.point_conv = nn.Conv2d(
-            in_channels=input_channel,
-            out_channels=output_channel,
-            kernel_size=1,
-            stride=1,
-            padding=0,
-            groups=1
-        )
-
-    def forward(self, input_):
-        output = self.depth_conv(input_)
-        output = self.point_conv(output)
-        return output
+# class Depthwise_Conv(nn.Module):
+#     def __init__(self, input_channel, output_channel,kernel_size,stride):
+#         super(Depthwise_Conv, self).__init__()
+#         self.depth_conv = nn.Conv2d(
+#             in_channels=input_channel,
+#             out_channels=input_channel,
+#             kernel_size=kernel_size,
+#             stride=stride,
+#             padding=1,
+#             groups=input_channel
+#         )
+#         self.point_conv = nn.Conv2d(
+#             in_channels=input_channel,
+#             out_channels=output_channel,
+#             kernel_size=1,
+#             stride=1,
+#             padding=0,
+#             groups=1
+#         )
+#
+#     def forward(self, input_):
+#         output = self.depth_conv(input_)
+#         output = self.point_conv(output)
+#         return output
 
 class ResBlock_Norml(nn.Module):
     def __init__(self,input_channel,output_channel,stride=1):#输入输出以及stride采样间隔
         super(ResBlock_Norml, self).__init__()
         # 残差块的第一个卷积
         # 通道数变换in->out，每一层（除第一层外）的第一个block
-        self.conv_1=Depthwise_Conv(input_channel,output_channel,kernel_size=1,stride=1)#nn.Conv2d(input_channel,output_channel,kernel_size=3, stride=stride, padding=1)
+        #self.conv_1=Depthwise_Conv(input_channel,output_channel,kernel_size=1,stride=1)
+        self.conv_1=nn.Conv2d(input_channel,output_channel,kernel_size=3, stride=stride, padding=1)
         self.bn_1 = nn.BatchNorm2d(output_channel)
         self.relu = DyReLUB(output_channel,conv_type='2d')#nn.ReLU(inplace=True)
         # 残差块的第二个卷积
         # 通道数、图片尺寸均不变
-        self.conv_2 = Depthwise_Conv(input_channel,output_channel,kernel_size=1,stride=1)#nn.Conv2d(output_channel, output_channel, kernel_size=3, stride=1, padding=1)
+        # self.conv_2 = Depthwise_Conv(input_channel,output_channel,kernel_size=1,stride=1)
+        self.conv_2 = nn.Conv2d(output_channel, output_channel, kernel_size=3, stride=1, padding=1)
         self.bn_2 = nn.BatchNorm2d(output_channel)
         # 残差块的shortcut
         # 如果残差块的输入输出通道数不同，则需要变换通道数及图片尺寸，以和residual部分相加
@@ -87,12 +89,14 @@ class ResBlock(nn.Module):
         super(ResBlock, self).__init__()
         # 残差块的第一个卷积
         # 通道数变换in->out，每一层（除第一层外）的第一个block
-        self.conv_1=Depthwise_Conv(input_channel,output_channel,kernel_size=3,stride=1)#nn.Conv2d(input_channel,output_channel,kernel_size=3, stride=stride, padding=1)
+        # self.conv_1 = Depthwise_Conv(input_channel,output_channel,kernel_size=3,stride=1)#
+        self.conv_1 = nn.Conv2d(input_channel,output_channel,kernel_size=3, stride=stride, padding=1)
         self.bn_1 = nn.BatchNorm2d(output_channel)
         self.relu = nn.ReLU(inplace=True)
         # 残差块的第二个卷积
         # 通道数、图片尺寸均不变
-        self.conv_2 = Depthwise_Conv(output_channel,output_channel,kernel_size=3,stride=1)#nn.Conv2d(output_channel, output_channel, kernel_size=3, stride=1, padding=1)
+        # self.conv_2 = Depthwise_Conv(output_channel,output_channel,kernel_size=3,stride=1)#
+        self.conv_2 = nn.Conv2d(output_channel, output_channel, kernel_size=3, stride=1, padding=1)
         self.bn_2 = nn.BatchNorm2d(output_channel)
         # 残差块的shortcut
         # 如果残差块的输入输出通道数不同，则需要变换通道数及图片尺寸，以和residual部分相加
@@ -169,17 +173,19 @@ class ResNet_Each_Conv(nn.Module):
 class FinalLoss_Crack(nn.Module):
     def __init__(self):
         super(FinalLoss_Crack, self).__init__()
-        self.conv_1=Depthwise_Conv(256,64,kernel_size=1,stride=1)#nn.Conv2d(256, 64, kernel_size=1, stride=1)#卷积
-        self.conv_2=Depthwise_Conv(128,64,kernel_size=1,stride=1)#nn.Conv2d(128, 64, kernel_size=1, stride=1)#卷积
+        # self.conv_1 = Depthwise_Conv(256,64,kernel_size=1,stride=1)
+        self.conv_1 = nn.Conv2d(256, 64, kernel_size=1, stride=1)#卷积
+        # self.conv_2 = Depthwise_Conv(128,64,kernel_size=1,stride=1)
+        self.conv_2 = nn.Conv2d(128, 64, kernel_size=1, stride=1)#卷积
         #self.conv_3=nn.Conv2d(64, 64, kernel_size=1, stride=1)#卷积
         #self.conv_4=nn.Conv2d(64, 64, kernel_size=1, stride=1)#卷积
         self.bn = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         #self.conv_4=nn.ConvTranspose2d(64, 64, kernel_size, stride=1, padding=0, output_padding=0, bias=True)
-        self.fuse_conv=Depthwise_Conv(64*2,64,kernel_size=1,stride=1)#nn.Conv2d(64*2, 64, kernel_size=1, stride=1)
-        self.conv_f =Depthwise_Conv(64,1,kernel_size=1,stride=1)#nn.Conv2d(in_channels=64, out_channels=1,
-                      #        kernel_size=1, stride=1,
-                      #        bias=True)#输出一个参数
+        # self.fuse_conv = Depthwise_Conv(64*2,64,kernel_size=1,stride=1)#
+        self.fuse_conv = nn.Conv2d(64*2, 64, kernel_size=1, stride=1)
+        # self.conv_f =Depthwise_Conv(64,1,kernel_size=1,stride=1)#
+        self.conv_f = nn.Conv2d(in_channels=64, out_channels=1,kernel_size=1, stride=1, bias=True)#输出一个参数
         self.act = DyReLUB(64,conv_type='2d')#nn.ReLU(inplace=True)
     def forward(self,loss1,loss2,loss3,loss4,W,H):
         self.h=H
@@ -211,20 +217,20 @@ class Attention_block(nn.Module):
     def __init__(self,F_g,F_l,F_int):
         super(Attention_block,self).__init__()
         self.W_g = nn.Sequential(
-            Depthwise_Conv(F_g,F_int,kernel_size=1,stride=1),
-            #nn.Conv2d(F_g, F_int, kernel_size=1,stride=1,padding=0,bias=True),#卷积F_g到F_int
+            # Depthwise_Conv(F_g,F_int,kernel_size=1,stride=1),
+            nn.Conv2d(F_g, F_int, kernel_size=1,stride=1,padding=0,bias=True),#卷积F_g到F_int
             nn.BatchNorm2d(F_int)#归一化F_int
             )
 
         self.W_x = nn.Sequential(
-            Depthwise_Conv(F_l, F_int, kernel_size=1, stride=1),
-            #nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
+            # Depthwise_Conv(F_l, F_int, kernel_size=1, stride=1),
+            nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(F_int)
         )
 
         self.psi = nn.Sequential(
-            Depthwise_Conv(F_int, 1, kernel_size=1, stride=1),
-            #nn.Conv2d(F_int, 1, kernel_size=1,stride=1,padding=0,bias=True),
+            # Depthwise_Conv(F_int, 1, kernel_size=1, stride=1),
+            nn.Conv2d(F_int, 1, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(1),
             nn.Sigmoid()
         )
@@ -329,7 +335,8 @@ class SingleReLUBNConv(nn.Module):
 
         self.outK, self.outS, self.outP, self.outD = outK, outS, outP, outD
         self.outG = outG
-        self.conv_1= self.conv_m=Depthwise_Conv(inC, outC, kernel_size=1, stride=1)#nn.Conv2d(inC, outC, kernel_size=3, stride=midS, padding=1)
+        # self.conv_1= self.conv_m=Depthwise_Conv(inC, outC, kernel_size=1, stride=1)
+        self.conv_1= self.conv_m = nn.Conv2d(inC, outC, kernel_size=3, stride=midS, padding=1)
         self.bn_1 = nn.BatchNorm2d(num_features=outC, eps=1e-5, momentum=0.1,#卷积层之后总会添加BatchNorm2d进行数据的归一化处理
                                    affine=True, track_running_stats=True)
 
@@ -429,6 +436,228 @@ class EncoderBlock(nn.Module):
         output = self.double_conv(self.pool(input_))
         return output
 
+
+class channel_attention(nn.Module):
+    # 初始化, in_channel代表输入特征图的通道数, ratio代表第一个全连接的通道下降倍数
+    def __init__(self, in_channel, ratio=4):
+        # 继承父类初始化方法
+        super(channel_attention, self).__init__()
+
+        # 全局最大池化 [b,c,h,w]==>[b,c,1,1]
+        self.max_pool = nn.AdaptiveMaxPool2d(output_size=1)
+        # 全局平均池化 [b,c,h,w]==>[b,c,1,1]
+        self.avg_pool = nn.AdaptiveAvgPool2d(output_size=1)
+
+        # 第一个全连接层, 通道数下降4倍
+        self.fc1 = nn.Linear(in_features=in_channel, out_features=in_channel // ratio, bias=False)
+        # 第二个全连接层, 恢复通道数
+        self.fc2 = nn.Linear(in_features=in_channel // ratio, out_features=in_channel, bias=False)
+
+        # relu激活函数
+        self.relu = nn.ReLU()
+        # sigmoid激活函数
+        self.sigmoid = nn.Sigmoid()
+
+    # 前向传播
+    def forward(self, inputs):
+        # 获取输入特征图的shape
+        b, c, h, w = inputs.shape
+
+        # 输入图像做全局最大池化 [b,c,h,w]==>[b,c,1,1]
+        max_pool = self.max_pool(inputs)
+        # 输入图像的全局平均池化 [b,c,h,w]==>[b,c,1,1]
+        avg_pool = self.avg_pool(inputs)
+
+        # 调整池化结果的维度 [b,c,1,1]==>[b,c]
+        max_pool = max_pool.view([b, c])
+        avg_pool = avg_pool.view([b, c])
+
+        # 第一个全连接层下降通道数 [b,c]==>[b,c//4]
+        x_maxpool = self.fc1(max_pool)
+        x_avgpool = self.fc1(avg_pool)
+
+        # 激活函数
+        x_maxpool = self.relu(x_maxpool)
+        x_avgpool = self.relu(x_avgpool)
+
+        # 第二个全连接层恢复通道数 [b,c//4]==>[b,c]
+        x_maxpool = self.fc2(x_maxpool)
+        x_avgpool = self.fc2(x_avgpool)
+
+        # 将这两种池化结果相加 [b,c]==>[b,c]
+        x = x_maxpool + x_avgpool
+        # sigmoid函数权值归一化
+        x = self.sigmoid(x)
+        # 调整维度 [b,c]==>[b,c,1,1]
+        x = x.view([b, c, 1, 1])
+        # 输入特征图和通道权重相乘 [b,c,h,w]
+        outputs = inputs * x
+
+        return outputs
+
+
+# ---------------------------------------------------- #
+# （2）空间注意力机制
+class spatial_attention(nn.Module):
+    # 初始化，卷积核大小为7*7
+    def __init__(self, kernel_size=7):
+        # 继承父类初始化方法
+        super(spatial_attention, self).__init__()
+
+        # 为了保持卷积前后的特征图shape相同，卷积时需要padding
+        padding = kernel_size // 2
+        # 7*7卷积融合通道信息 [b,2,h,w]==>[b,1,h,w]
+        self.conv = nn.Conv2d(in_channels=2, out_channels=1, kernel_size=kernel_size,
+                              padding=padding, bias=False)
+        # sigmoid函数
+        self.sigmoid = nn.Sigmoid()
+
+    # 前向传播
+    def forward(self, inputs):
+        # 在通道维度上最大池化 [b,1,h,w]  keepdim保留原有深度
+        # 返回值是在某维度的最大值和对应的索引
+        x_maxpool, _ = torch.max(inputs, dim=1, keepdim=True)
+
+        # 在通道维度上平均池化 [b,1,h,w]
+        x_avgpool = torch.mean(inputs, dim=1, keepdim=True)
+        # 池化后的结果在通道维度上堆叠 [b,2,h,w]
+        x = torch.cat([x_maxpool, x_avgpool], dim=1)
+
+        # 卷积融合通道信息 [b,2,h,w]==>[b,1,h,w]
+        x = self.conv(x)
+        # 空间权重归一化
+        x = self.sigmoid(x)
+        # 输入特征图和空间权重相乘
+        outputs = inputs * x
+
+        return outputs
+
+
+# ---------------------------------------------------- #
+# （3）CBAM注意力机制
+class cbam(nn.Module):
+    # 初始化，in_channel和ratio=4代表通道注意力机制的输入通道数和第一个全连接下降的通道数
+    # kernel_size代表空间注意力机制的卷积核大小
+    def __init__(self, in_channel, ratio=4, kernel_size=7):
+        # 继承父类初始化方法
+        super(cbam, self).__init__()
+
+        # 实例化通道注意力机制
+        self.channel_attention = channel_attention(in_channel=in_channel, ratio=ratio)
+        # 实例化空间注意力机制
+        self.spatial_attention = spatial_attention(kernel_size=kernel_size)
+
+    # 前向传播
+    def forward(self, inputs):
+        # 先将输入图像经过通道注意力机制
+        x = self.channel_attention(inputs)
+        # 然后经过空间注意力机制
+        x = self.spatial_attention(x)
+
+        return x
+
+
+
+
+
+
+class DecoderBlock_CBAM(nn.Module):
+    def __init__(self, inC, trpC, midC, outC, use_bias=True,
+                 scale_factor=2, decoder_type='transposed',
+                 trpK=3, trpP=1, trpOP=1, trpD=1, trpG=1,
+                 **kwargs):
+        super(DecoderBlock_CBAM, self).__init__()
+
+        self.use_bias = use_bias
+        self.scale_factor = scale_factor
+        self.decoder_type = decoder_type
+
+        if decoder_type == 'transposed':
+            self.up_scale = nn.ConvTranspose2d(in_channels=inC,
+                                               out_channels=trpC,
+                                               kernel_size=trpK,
+                                               stride=scale_factor,
+                                               padding=trpP,
+                                               output_padding=trpOP,
+                                               groups=trpG,
+                                               bias=use_bias,
+                                               dilation=trpD,
+                                               padding_mode='zeros')#in_channels(int) – 输入信号的通道数
+                                                                    #out_channels(int) – 卷积产生的通道数
+                                                                    #kerner_size(int or tuple) - 卷积核的大小
+                                                                    #stride(int or tuple,optional) - 卷积步长
+                                                                    #padding(int or tuple, optional) - 输入的每一条边补充0的层数
+                                                                    #output_padding(int or tuple, optional) - 输出的每一条边补充0的层数
+                                                                    #dilation(int or tuple, optional) – 卷积核元素之间的间距
+                                                                    #groups(int, optional) – 从输入通道到输出通道的阻塞连接数
+                                                                    #bias(bool, optional) - 如果bias=True，添加偏置
+
+        elif decoder_type == 'bilinear':
+            self.up_scale = nn.Upsample(scale_factor=scale_factor,
+                                        mode='bilinear',
+                                        align_corners=None)#size (int or Tuple[int] or Tuple[int, int] or Tuple[int, int, int], optional) – 根据不同的输入类型制定的输出大小
+                                                           #scale_factor (float or Tuple[float] or Tuple[float, float] or Tuple[float, float, float], optional) – 指定输出为输入的多少倍数。如果输入为tuple，其也要制定为tuple类型
+                                                           #mode (str, optional) – 可使用的上采样算法，有'nearest', 'linear', 'bilinear', 'bicubic' and 'trilinear'. 默认使用'nearest'
+                                                           #align_corners (bool, optional) – 如果为True，输入的角像素将与输出张量对齐，因此将保存下来这些像素的值。仅当使用的算法为'linear', 'bilinear'or 'trilinear'时可以使用。默认设置为False
+
+        else:
+            raise NotImplementedError
+
+        #self.double_conv = DoubleReLUBNConv(inC=trpC*2, midC=midC, outC=outC,
+        #                                    use_bias=use_bias, **kwargs)
+        # self.conv_1 = Depthwise_Conv(trpC*2, outC,kernel_size=3, stride=1)
+        self.conv_1 = nn.Conv2d(trpC*2, outC, kernel_size=3, stride=1, padding=1)#Depthwise_Conv(trpC*2, outC, stride=1)
+        self.bn_1 = nn.BatchNorm2d(num_features=outC, eps=1e-5, momentum=0.1,  # 卷积层之后总会添加BatchNorm2d进行数据的归一化处理
+                                   affine=True,
+                                   track_running_stats=True)
+        self.relu = nn.ReLU(inplace=True)  # 激活函数
+
+        self.attention=cbam(in_channel=trpC)
+
+
+    def forward(self, input_, skip):#链接
+        output = self.up_scale(input_)
+
+        skip=self.attention(skip)
+        #output = self._same_padding(output, skip)
+        #skip = self._same_padding(skip, output)
+        # output = torch.cat([skip, output], dim=1)
+        #print(skip.shape)
+        #output = self.double_conv(output)
+
+        output = torch.cat([skip, output], dim=1)
+
+        output = self.relu(self.bn_1(self.conv_1(output)))  # 输出中间572*572*1-->570*570*64
+
+        return output
+
+    @staticmethod
+    def _same_padding(input_, target, data_format='NCHW'):#input_为same作为目标形状
+        """
+        Zero pad input_ as the shape of target
+        """
+        if data_format == 'NCHW':
+            if input_.shape == target.shape:
+                return input_
+
+            else:
+                assert input_.shape[:-2] == target.shape[:-2]
+                _, h_input, w_input, _ = input_.shape
+                _, h_target, w_target, _ = target.shape
+
+                h_dff = h_target - h_input
+                w_diff = w_target - w_input
+
+                pad_parten = (h_dff // 2, h_dff - h_dff // 2,
+                              w_diff // 2, w_diff - w_diff // 2)
+
+                output = F.pad(input=input_, pad=pad_parten,
+                               mode='constant', value=0)
+                return output
+        else:
+            raise NotImplementedError
+
+
 class DecoderBlock_Conv1(nn.Module):
     def __init__(self, inC, trpC, midC, outC, use_bias=True,
                  scale_factor=2, decoder_type='transposed',
@@ -473,7 +702,8 @@ class DecoderBlock_Conv1(nn.Module):
 
         #self.double_conv = DoubleReLUBNConv(inC=trpC*2, midC=midC, outC=outC,
         #                                    use_bias=use_bias, **kwargs)
-        self.conv_1 = Depthwise_Conv(trpC*2, outC,kernel_size=3, stride=1)#nn.Conv2d(trpC*2, outC, kernel_size=3, stride=1, padding=1)#Depthwise_Conv(trpC*2, outC, stride=1)
+        # self.conv_1 = Depthwise_Conv(trpC*2, outC,kernel_size=3, stride=1)
+        self.conv_1 = nn.Conv2d(trpC*2, outC, kernel_size=3, stride=1, padding=1)#Depthwise_Conv(trpC*2, outC, stride=1)
         self.bn_1 = nn.BatchNorm2d(num_features=outC, eps=1e-5, momentum=0.1,  # 卷积层之后总会添加BatchNorm2d进行数据的归一化处理
                                    affine=True,
                                    track_running_stats=True)

@@ -16,7 +16,7 @@ def main():
     """
     config = get_config()   
     agent = get_agent(config)
-    # agent.run()
+    agent.run()
     agent.finalize()
 
 

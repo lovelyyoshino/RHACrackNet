@@ -31,7 +31,7 @@ ckpt:
 # model config
 # ====================
 model:
-  model_name: 'unet'
+  model_name: 'RHANet'
 
 # ====================
 # data source config

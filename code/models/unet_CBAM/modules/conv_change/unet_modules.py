@@ -11,47 +11,76 @@ from torch import nn
 from torch.nn import functional as F
 from .dyrelu import DyReLUB
 
+
+"""
+depthwise_conv
+"""
+
+
+class Depthwise_Conv(nn.Module):
+    def __init__(self, input_channel, output_channel, stride):
+        super(Depthwise_Conv, self).__init__()
+        self.depth_conv = nn.Conv2d(
+            in_channels=input_channel,
+            out_channels=input_channel,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            groups=input_channel
+        )
+        self.point_conv = nn.Conv2d(
+            in_channels=input_channel,
+            out_channels=output_channel,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            groups=1
+        )
+
+    def forward(self, input_):
+        output = self.depth_conv(input_)
+        output = self.point_conv(output)
+        return output
+
 def mid_output_get():
     global  output_mid
     return output_mid
 
-# class Depthwise_Conv(nn.Module):
-#     def __init__(self, input_channel, output_channel,kernel_size,stride):
-#         super(Depthwise_Conv, self).__init__()
-#         self.depth_conv = nn.Conv2d(
-#             in_channels=input_channel,
-#             out_channels=input_channel,
-#             kernel_size=kernel_size,
-#             stride=stride,
-#             padding=1,
-#             groups=input_channel
-#         )
-#         self.point_conv = nn.Conv2d(
-#             in_channels=input_channel,
-#             out_channels=output_channel,
-#             kernel_size=1,
-#             stride=1,
-#             padding=0,
-#             groups=1
-#         )
-#
-#     def forward(self, input_):
-#         output = self.depth_conv(input_)
-#         output = self.point_conv(output)
-#         return output
+class Depthwise_Conv(nn.Module):
+    def __init__(self, input_channel, output_channel,stride):
+        super(Depthwise_Conv, self).__init__()
+        self.depth_conv = nn.Conv2d(
+            in_channels=input_channel,
+            out_channels=input_channel,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            groups=input_channel
+        )
+        self.point_conv = nn.Conv2d(
+            in_channels=input_channel,
+            out_channels=output_channel,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            groups=1
+        )
+ 
+    def forward(self, input_):
+        output = self.depth_conv(input_)
+        output = self.point_conv(output)
+        return output
 
 class ResBlock_Norml(nn.Module):
     def __init__(self,input_channel,output_channel,stride=1):#输入输出以及stride采样间隔
         super(ResBlock_Norml, self).__init__()
         # 残差块的第一个卷积
         # 通道数变换in->out，每一层（除第一层外）的第一个block
-        #self.conv_1=Depthwise_Conv(input_channel,output_channel,kernel_size=1,stride=1)
         self.conv_1=nn.Conv2d(input_channel,output_channel,kernel_size=3, stride=stride, padding=1)
         self.bn_1 = nn.BatchNorm2d(output_channel)
         self.relu = DyReLUB(output_channel,conv_type='2d')#nn.ReLU(inplace=True)
         # 残差块的第二个卷积
         # 通道数、图片尺寸均不变
-        # self.conv_2 = Depthwise_Conv(input_channel,output_channel,kernel_size=1,stride=1)
         self.conv_2 = nn.Conv2d(output_channel, output_channel, kernel_size=3, stride=1, padding=1)
         self.bn_2 = nn.BatchNorm2d(output_channel)
         # 残差块的shortcut
@@ -89,14 +118,12 @@ class ResBlock(nn.Module):
         super(ResBlock, self).__init__()
         # 残差块的第一个卷积
         # 通道数变换in->out，每一层（除第一层外）的第一个block
-        # self.conv_1 = Depthwise_Conv(input_channel,output_channel,kernel_size=3,stride=1)#
-        self.conv_1 = nn.Conv2d(input_channel,output_channel,kernel_size=3, stride=stride, padding=1)
+        self.conv_1=Depthwise_Conv(input_channel,output_channel, stride=stride)
         self.bn_1 = nn.BatchNorm2d(output_channel)
         self.relu = nn.ReLU(inplace=True)
         # 残差块的第二个卷积
         # 通道数、图片尺寸均不变
-        # self.conv_2 = Depthwise_Conv(output_channel,output_channel,kernel_size=3,stride=1)#
-        self.conv_2 = nn.Conv2d(output_channel, output_channel, kernel_size=3, stride=1, padding=1)
+        self.conv_2 = Depthwise_Conv(output_channel, output_channel, stride=1)
         self.bn_2 = nn.BatchNorm2d(output_channel)
         # 残差块的shortcut
         # 如果残差块的输入输出通道数不同，则需要变换通道数及图片尺寸，以和residual部分相加
@@ -144,7 +171,7 @@ class ResNet_First_Conv(nn.Module):
     def forward(self,input_):
         output=self.first(input_)
         return output
-
+        
 class ResNet_Each_Conv(nn.Module):
     def __init__(self, block,input_channel,output_channel,block_num=2,stride=2):
         super(ResNet_Each_Conv, self).__init__()
@@ -173,19 +200,17 @@ class ResNet_Each_Conv(nn.Module):
 class FinalLoss_Crack(nn.Module):
     def __init__(self):
         super(FinalLoss_Crack, self).__init__()
-        # self.conv_1 = Depthwise_Conv(256,64,kernel_size=1,stride=1)
-        self.conv_1 = nn.Conv2d(256, 64, kernel_size=1, stride=1)#卷积
-        # self.conv_2 = Depthwise_Conv(128,64,kernel_size=1,stride=1)
-        self.conv_2 = nn.Conv2d(128, 64, kernel_size=1, stride=1)#卷积
+        self.conv_1=nn.Conv2d(256, 64, kernel_size=1, stride=1)#卷积
+        self.conv_2=nn.Conv2d(128, 64, kernel_size=1, stride=1)#卷积
         #self.conv_3=nn.Conv2d(64, 64, kernel_size=1, stride=1)#卷积
         #self.conv_4=nn.Conv2d(64, 64, kernel_size=1, stride=1)#卷积
         self.bn = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         #self.conv_4=nn.ConvTranspose2d(64, 64, kernel_size, stride=1, padding=0, output_padding=0, bias=True)
-        # self.fuse_conv = Depthwise_Conv(64*2,64,kernel_size=1,stride=1)#
-        self.fuse_conv = nn.Conv2d(64*2, 64, kernel_size=1, stride=1)
-        # self.conv_f =Depthwise_Conv(64,1,kernel_size=1,stride=1)#
-        self.conv_f = nn.Conv2d(in_channels=64, out_channels=1,kernel_size=1, stride=1, bias=True)#输出一个参数
+        self.fuse_conv=nn.Conv2d(64*2, 64, kernel_size=1, stride=1)
+        self.conv_f = nn.Conv2d(in_channels=64, out_channels=1,
+                              kernel_size=1, stride=1,
+                              bias=True)#输出一个参数
         self.act = DyReLUB(64,conv_type='2d')#nn.ReLU(inplace=True)
     def forward(self,loss1,loss2,loss3,loss4,W,H):
         self.h=H
@@ -217,26 +242,24 @@ class Attention_block(nn.Module):
     def __init__(self,F_g,F_l,F_int):
         super(Attention_block,self).__init__()
         self.W_g = nn.Sequential(
-            # Depthwise_Conv(F_g,F_int,kernel_size=1,stride=1),
+            #Depthwise_Conv(F_g,F_int,stride=1)
             nn.Conv2d(F_g, F_int, kernel_size=1,stride=1,padding=0,bias=True),#卷积F_g到F_int
             nn.BatchNorm2d(F_int)#归一化F_int
             )
-
+        
         self.W_x = nn.Sequential(
-            # Depthwise_Conv(F_l, F_int, kernel_size=1, stride=1),
             nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(F_int)
         )
 
         self.psi = nn.Sequential(
-            # Depthwise_Conv(F_int, 1, kernel_size=1, stride=1),
             nn.Conv2d(F_int, 1, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(1),
             nn.Sigmoid()
         )
-
+        
         self.relu = nn.ReLU(inplace=True)
-
+        
     def forward(self, g, x):
         #print(">>>>>XXXX",g.shape,x.shape)
         g1 = self.W_g(g)
@@ -253,31 +276,32 @@ class Augmented_Attention_block(nn.Module):
     def __init__(self,F_g,F_l,F_int):
         super(Augmented_Attention_block,self).__init__()
         self.W_g = nn.Sequential(
-            #Depthwise_Conv(F_g,F_int,kernel_size=1,stride=1),
+            #Depthwise_Conv(F_g,F_int,stride=1)
             nn.Conv2d(F_g, F_int, kernel_size=1,stride=1,padding=0,bias=True),#卷积F_g到F_int
             nn.BatchNorm2d(F_int)#归一化F_int
             )
         self.W_gapg = nn.Sequential(
             nn.AdaptiveAvgPool2d((2,2)),  # 自适应池化，指定池化输出尺寸为 1 * 1
-            #Depthwise_Conv(F_l, F_int, kernel_size=1, stride=1),
             nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(F_int)
         )
-
+        
         self.W_x = nn.Sequential(
-            #Depthwise_Conv(F_l, F_int, kernel_size=1, stride=1),
             nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(F_int)
         )
         self.W_gapx = nn.Sequential(
             nn.AdaptiveAvgPool2d((2,2)),  # 自适应池化，指定池化输出尺寸为 1 * 1
-            #Depthwise_Conv(F_l, F_int, kernel_size=1, stride=1),
+            nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
+            nn.BatchNorm2d(F_int)
+        )
+        self.W_gapx1 = nn.Sequential(
+            nn.AdaptiveAvgPool2d((2,2)),  # 自适应池化，指定池化输出尺寸为 1 * 1
             nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(F_int)
         )
 
         self.psi = nn.Sequential(
-            #Depthwise_Conv(F_int, 1, kernel_size=1, stride=1),
             nn.Conv2d(F_int, 1, kernel_size=1,stride=1,padding=0,bias=True),
             nn.BatchNorm2d(1),
             nn.Sigmoid()
@@ -286,7 +310,7 @@ class Augmented_Attention_block(nn.Module):
                                  stride=None, padding=0,
                                  ceil_mode=False,
                                  count_include_pad=True)
-
+        
         self.conv_m=nn.Conv2d(F_int, F_int, kernel_size=1,stride=1,padding=0,bias=True)
         self.relu = nn.ReLU(inplace=True)
         self.softmax = nn.Softmax2d()
@@ -295,27 +319,30 @@ class Augmented_Attention_block(nn.Module):
         #print(g.shape)
         g1_gap = self.W_gapg(g)
         x1_gap = self.W_gapx(x)
+        #print(x1_gap.shape)
+        x1_gap1=self.W_gapx1(x+g)
+        x1_gap=x1_gap*x1_gap1
+        #print(x1_gap.shape)
+        gx_mutil=self.relu(x1_gap+x1_gap1)
+        gx_mutil_1=self.pool(gx_mutil)
+        gx_mutil_1=gx_mutil_1*x1_gap
+        psi_s=self.relu(gx_mutil_1+g1_gap)#两个累加
+        #print(x1_gap.shape)
+        g1 = self.W_g(g)
+        x1 = self.W_x(x)
+        #print(">>>>>",g1.shape)
+        #psi_s = self.relu(g1_gap+x1_gap)#两个累加
+        psi_s=self.conv_m(psi_s)
+        psi_s=self.softmax(psi_s)
+        psi_s=self.pool(psi_s)
+        psi_m=psi_s*x1
+        #print(psi_m.shape,g.shape)
+        psi = self.relu(psi_m+g1)#两个累加
 
-        mutil=self.W_gapx(g+x)
-        mutil = self.pool(mutil)
-
-        mutil_x = x1_gap * mutil
-        mutil_x_g = self.relu( mutil_x + g1_gap )
-
-        mutil_x_g=self.conv_m(mutil_x_g)
-        mutil_x_g=self.softmax(mutil_x_g)
-        mutil_x_g=self.pool(mutil_x_g)
-
-        M_channel = mutil_x_g * x
-
-        g_s = self.W_g(g)
-        F_s = self.W_x(M_channel)
-
-        M_spatial = self.relu( F_s + g_s )
-        psi = self.psi( M_spatial )
-        output = x * psi
-        # output = g * psi
-        return output
+        psi = self.psi(psi_m+g1)#最终形成1个channel的维度比重
+        psi = x*psi
+        #print(x.shape,">>>>",psi.shape,"""""",(x*psi).shape)
+        return psi
 
 class SingleReLUBNConv(nn.Module):
     """
@@ -335,8 +362,7 @@ class SingleReLUBNConv(nn.Module):
 
         self.outK, self.outS, self.outP, self.outD = outK, outS, outP, outD
         self.outG = outG
-        # self.conv_1= self.conv_m=Depthwise_Conv(inC, outC, kernel_size=1, stride=1)
-        self.conv_1= self.conv_m = nn.Conv2d(inC, outC, kernel_size=3, stride=midS, padding=1)
+        self.conv_1= Depthwise_Conv(inC, outC, stride=midS)
         self.bn_1 = nn.BatchNorm2d(num_features=outC, eps=1e-5, momentum=0.1,#卷积层之后总会添加BatchNorm2d进行数据的归一化处理
                                    affine=True, track_running_stats=True)
 
@@ -364,7 +390,7 @@ class DoubleReLUBNConv(nn.Module):
 
         self.outK, self.outS, self.outP, self.outD = outK, outS, outP, outD
         self.outG = outG
-        self.conv_1=nn.Conv2d(inC, midC, kernel_size=3, stride=midS, padding=1)
+        self.conv_1=Depthwise_Conv(inC, midC, stride=midS)
         # self.conv_1 = nn.Conv2d(in_channels=inC, out_channels=midC,
         #                         kernel_size=midK, stride=midS,
         #                         padding=midP, dilation=midD, groups=midG,
@@ -376,7 +402,7 @@ class DoubleReLUBNConv(nn.Module):
                                                                          #2.eps：分母中添加的一个值，目的是为了计算的稳定性，默认为：1e-5
                                                                          #3.momentum：一个用于运行过程中均值和方差的一个估计参数（我的理解是一个稳定系数，类似于SGD中的momentum的系数）
                                                                          #4.affine：当设为true时，会给定可以学习的系数矩阵gamma和beta
-        self.conv_2=nn.Conv2d(midC, outC, kernel_size=3, stride=outS, padding=1)
+        self.conv_2=Depthwise_Conv(midC, outC, stride=outS)
         # self.conv_2 = nn.Conv2d(in_channels=midC, out_channels=outC,
         #                         kernel_size=outK, stride=outS,
         #                         padding=outP, dilation=outD, groups=outG,
@@ -480,14 +506,13 @@ class DecoderBlock_Conv1(nn.Module):
 
         #self.double_conv = DoubleReLUBNConv(inC=trpC*2, midC=midC, outC=outC,
         #                                    use_bias=use_bias, **kwargs)
-        # self.conv_1 = Depthwise_Conv(trpC*2, outC,kernel_size=3, stride=1)
-        self.conv_1 = nn.Conv2d(trpC*2, outC, kernel_size=3, stride=1, padding=1)#Depthwise_Conv(trpC*2, outC, stride=1)
+        self.conv_1 = Depthwise_Conv(trpC*2, outC, stride=1)#Depthwise_Conv(trpC*2, outC, stride=1)
         self.bn_1 = nn.BatchNorm2d(num_features=outC, eps=1e-5, momentum=0.1,  # 卷积层之后总会添加BatchNorm2d进行数据的归一化处理
                                    affine=True,
                                    track_running_stats=True)
-        self.relu = nn.ReLU(inplace=True)  # 激活函数
+        self.relu = DyReLUB(outC,conv_type='2d')#nn.ReLU(inplace=True)  # 激活函数
 
-        self.attention=Augmented_Attention_block(F_g=trpC,F_l=trpC,F_int=trpC)
+        self.attention=Augmented_Attention_block(F_g=trpC,F_l=trpC,F_int=trpC/2)
 
 
     def forward(self, input_, skip):#链接
@@ -496,15 +521,12 @@ class DecoderBlock_Conv1(nn.Module):
         skip=self.attention(output,skip)
         #output = self._same_padding(output, skip)
         #skip = self._same_padding(skip, output)
-        # output = torch.cat([skip, output], dim=1)
-        #print(skip.shape)
-        #output = self.double_conv(output)
-
         output = torch.cat([skip, output], dim=1)
 
+        #output = self.double_conv(output)
         output = self.relu(self.bn_1(self.conv_1(output)))  # 输出中间572*572*1-->570*570*64
 
-        return output, skip
+        return output
 
     @staticmethod
     def _same_padding(input_, target, data_format='NCHW'):#input_为same作为目标形状
